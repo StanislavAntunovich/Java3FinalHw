@@ -1,14 +1,15 @@
 package ru.geekbrains.java3.finalhomework.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import ru.geekbrains.java3.finalhomework.entity.User;
 import ru.geekbrains.java3.finalhomework.repository.UserRepository;
+
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/")
@@ -23,16 +24,11 @@ public class UserController {
         return "index";
     }
 
-    @GetMapping("adduser")
-    public String addUserPage(User user, Model model) {
-        model.addAttribute("adduser", true);
-        return "add_user";
-    }
-
     @PostMapping("adduser")
-    public String addUser(User user) {
-        repository.save(user);
-        return "redirect:/";
+    @ResponseBody
+    public ResponseEntity<User> addUser(@RequestBody User user) {
+        User newUser = repository.save(user);
+        return new ResponseEntity<>(newUser, HttpStatus.CREATED);
     }
 
     @GetMapping("user/{id}/delete")
@@ -41,17 +37,22 @@ public class UserController {
         return "redirect:/";
     }
 
-    // не понимаю почему не подгружается бутстрап
-    @GetMapping("user/{id}/edit")
-    public String editUser(@PathVariable Long id, Model model) {
-        model.addAttribute("user", repository.findById(id));
-        return "add_user";
+    @PutMapping("edituser")
+    @ResponseBody
+    public ResponseEntity<User> editUser(@RequestBody User user) {
+        repository.save(user);
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
-    @PostMapping("user/{id}/edit")
-    public String editUser(User user) {
-        repository.save(user);
-        return "redirect:/";
+    @GetMapping("getuser/{id}")
+    @ResponseBody
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+        Optional<User> user = repository.findById(id);
+        return user.map(
+                value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND)
+                );
+
     }
 
 
