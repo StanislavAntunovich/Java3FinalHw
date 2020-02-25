@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${title}"></title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" th:href="@{webjars/bootstrap/3.4.1/css/bootstrap.min.css}"/>
+    <link rel="script" th:href="@{webjars/bootstrap/3.4.1/js/bootstrap.min.js}"/>
+</head>
+<body>
+
+<div th:class="container">
+    <form action="#" th:action="${url}" th:object="${user}" th:method="post">
+
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" class="form-control" id="username" th:field="${user.name}">
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" class="form-control" id="password" th:field="${user.password}">
+        </div>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" class="form-control" id="email" th:field="${user.email}">
+        </div>
+        <button type="submit" class="btn btn-default">Submit</button>
+    </form>
+
+</div>
+</body>
+</html>
