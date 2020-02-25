@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Users</title>
-    <link rel="stylesheet" th:href="@{webjars/bootstrap/3.4.1/css/bootstrap.min.css}"/>
-    <link rel="script" th:href="@{webjars/bootstrap/3.4.1/js/bootstrap.min.js}"/>
+
+    <script type="text/javascript" th:src="@{webjars/jquery/3.4.1/jquery.min.js}"></script>
+    <link rel="stylesheet" th:href="@{webjars/bootstrap/4.3.1/css/bootstrap.min.css}"/>
+    <script rel="text/javascript" th:src="@{webjars/bootstrap/4.3.1/js/bootstrap.min.js}"></script>
 </head>
 <body>
 
@@ -13,25 +15,153 @@
     <table class="table">
         <thead>
         <tr>
-            <th>Id</th>
-            <th>Username</th>
-            <th>Email</th>
+            <th scope="col">Id</th>
+            <th scope="col">Username</th>
+            <th scope="col">Email</th>
         </tr>
         </thead>
-        <tbody>
+        <tbody th:class="user-table">
         <tr th:each="user : ${users}">
             <td th:text="${user.id}">1</td>
             <td th:text="${user.name}">Doe</td>
             <td th:text="${user.email}">john@example.com</td>
-            <td>
-                <a class="btn btn-success" th:href="@{/user/{id}/edit(id=${user.id})}">Edit</a>
+            <td class="actions">
+                <button type="button" class="btn btn-success" data-toggle="modal" data-target="#exampleModal"
+                        th:data-whatever="${user.id}">Edit
+                </button>
                 <a class="btn btn-danger" th:href="@{/user/{id}/delete(id=${user.id})}">Delete</a>
             </td>
         </tr>
         </tbody>
     </table>
-    <a class="btn btn-default" th:href="@{/adduser}">New user</a>
+
+    <!--    <a class="btn btn-default" th:href="@{/adduser}">New user</a>-->
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal"
+            data-whatever="New User">
+        New User
+    </button>
+
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">New User</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="recipient-name" class="col-form-label">Name: </label>
+                            <input type="text" class="form-control" id="recipient-name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="recipient-pwd" class="col-form-label">Password:</label>
+                            <input type="password" class="form-control" id="recipient-pwd">
+                        </div>
+                        <div class="form-group">
+                            <label for="recipient-email" class="col-form-label">Email:</label>
+                            <input type="email" class="form-control" id="recipient-email">
+                        </div>
+
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 </div>
 
+
+<script>
+    $(function () {
+        var $newUserForm = $('#exampleModal');
+        $newUserForm.on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var whatever = button.data('whatever');
+            var modal = $(this);
+            console.log(whatever);
+            if (whatever == 'New User') {
+                modal.find('.modal-title').text('New user');
+                modal.find('.modal-body input').val('');
+                modal.find('.modal-body input#recipient-name').val('');
+                $('.btn-primary').removeClass('edit').addClass('new');
+            } else {
+                $.ajax({
+                    url: "http://localhost:8080/getuser/" + whatever,
+                    type: "GET",
+                    success: function (data) {
+                        modal.find('.modal-title').text('Edit user');
+                        modal.find('.modal-body input').val('');
+                        modal.find('.modal-body input#recipient-name').val(data.name);
+                        modal.find('.modal-body input#recipient-email').val(data.email);
+                        modal.find('.modal-body input#recipient-pwd').val(data.password);
+                        $('.btn-primary').removeClass('new').addClass('edit');
+
+                        $(document).on("click", ".edit", function () {
+                            var name = $('#recipient-name').val();
+                            var email = $('#recipient-email').val();
+                            var pwd = $('#recipient-pwd').val();
+                            $.ajax({
+                                url: "http://localhost:8080/edituser",
+                                type: "PUT",
+                                data: JSON.stringify({
+                                    id: whatever,
+                                    name: name,
+                                    email: email,
+                                    password: pwd
+                                }),
+                                success: function () {
+                                    $newUserForm.modal("hide");
+                                    location.reload();
+                                },
+                                contentType: "application/json"
+                            })
+                        });
+                    }
+                });
+
+            }
+        });
+
+
+        $(document).on("click", ".new", function () {
+            var name = $('#recipient-name').val();
+            var email = $('#recipient-email').val();
+            var pwd = $('#recipient-pwd').val();
+
+            $.ajax({
+                url: "http://localhost:8080/adduser",
+                type: "POST",
+                data: JSON.stringify({
+                    name: name,
+                    password: pwd,
+                    email: email
+                }),
+                success: onSuccAdding,
+                contentType: "application/json"
+
+            })
+
+        });
+
+        function onSuccAdding(data) {
+            console.log(data);
+            console.log(data.email);
+            $newUserForm.modal("hide");
+            location.reload();
+        }
+
+    })
+</script>
 </body>
 </html>
